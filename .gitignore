@@ -1,0 +1,15 @@
+# your own samples, references and builds: never commit them
+src/t9_samples.h
+refs/
+out/
+*.syx
+*.wav
+*.aif
+*.aiff
+*.npy
+34-t9-tg.json
+proto/*.dylib
+proto/*.so
+host/render
+__pycache__/
+.DS_Store

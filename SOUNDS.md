@@ -1,0 +1,99 @@
+# Settings
+
+Knobs are 0..127. Start from PITCH 64, plain trigs (note C4), Model-TG Filter open and Attack 0.
+PUNCH is the accent: p-lock it on the steps to accent. "Mars" rows reproduce the 909 From Mars hits the voices were
+fitted to.
+
+## BD (KICK)
+
+COLOR Attack, SHAPE Drive, SWEEP Sweep depth, CONTOUR Sweep time, DECAY.
+
+| Sound | COLOR | SHAPE | SWEEP | CONTOUR | DECAY |
+|---|---|---|---|---|---|
+| Default | 64 | 64 | 64 | 64 | 64 |
+| Mars Clean Long A | 82 | 64 | 64 | 27 | 127 |
+| Mars Tape Medium F | 48 | 64 | 64 | 109 | 89 |
+| Mars Tube Long F | 65 | 64 | 64 | 110 | 116 |
+| Hard techno | 90 | 80 | 64 | 40 | 50 |
+| Distorted | 70 | 100-127 | 64 | 60 | 70 |
+| No click | 0 | 30 | 50 | 80 | 110 |
+
+- COLOR: the 909's ATTACK over 16..127; below 16 the click fades out.
+- CONTOUR: the 909's TUNE (sweep time constant, 4 to 40 ms; the 909's range is about 30..110).
+- DECAY: the 909's DECAY. Short hold, then a tail that cuts off.
+- SHAPE: 64 is the 909, lower is rounder, higher drives toward a square.
+- SWEEP: depth of the pitch drop (64: about 280 Hz above the 49 Hz base). PITCH moves the whole kick.
+
+## SD (SNARE)
+
+COLOR Snappy, SHAPE Tone, SWEEP Pitch drop, CONTOUR Body, DECAY snappy length.
+
+| Sound | COLOR | SHAPE | SWEEP | CONTOUR | DECAY |
+|---|---|---|---|---|---|
+| Default | 64 | 64 | 64 | 64 | 64 |
+| Mars Clean E_01 | 34 | 64 | 64 | 64 | 28 |
+| Mars Clean E_03 | 21 | 64 | 64 | 64 | 29 |
+| Mars Clean E_10 | 95 | 64 | 64 | 64 | 102 |
+| House | 110 | 80 | 64 | 64 | 90 |
+| Fat | 60 | 40 | 80 | 90 | 60 |
+
+- COLOR: the 909's SNAPPY. DECAY: the 909's TONE (snappy cut-off, about 100 to 300 ms).
+- PITCH: the 909's TUNE (64: 198 and 315 Hz).
+- SHAPE: noise brightness. SWEEP: pitch bend at the start. CONTOUR: drum decay.
+
+## Hats (METAL)
+
+COLOR Tone, SHAPE 0 closed / 1 open, SWEEP Bits, DECAY (127 = as sampled).
+
+| Sound | COLOR | SHAPE | SWEEP | DECAY |
+|---|---|---|---|---|
+| Closed | 64 | 0 | 0 | 127, or 90 for tighter |
+| Open | 64 | 1 | 0 | 127, or 100 for shorter |
+| Darker | 40 | | 0 | |
+| Lo-fi | 64 | | 90-110 | |
+
+Choke: put closed and open on one track and p-lock SHAPE 1 on the open steps. A closed hat cuts the open one.
+COLOR 64 is flat; lower is darker, higher thinner.
+
+## RS/CP (PERC)
+
+SHAPE 0 rim, 1 clap.
+
+| Sound | COLOR | SHAPE | SWEEP | CONTOUR | DECAY |
+|---|---|---|---|---|---|
+| Rim | 64 | 0 | 64 | | 64 |
+| Sharper rim | 90 | 0 | 90 | | 40 |
+| Clap | 64 | 1 | 64 | 64 | 64 |
+| Tight clap | 64 | 1 | 0-20 | 50 | 50 |
+| Big clap | 64 | 1 | 75 | 70 | 95 |
+| Darker / brighter | 30 / 100 | 1 | 64 | 64 | 64 |
+
+- Rim: COLOR drive, SWEEP top ring level, DECAY.
+- Clap: SWEEP burst spacing (64: 0, 11, 24, 30 ms; 0 merges them), CONTOUR burst length, DECAY reverb tail,
+  COLOR width and brightness. PITCH tunes it.
+
+## Toms (TONE)
+
+COLOR Noise, SHAPE 0 low / 1 mid / 2 high, SWEEP Pitch dive depth, CONTOUR Dive time, DECAY.
+
+| Sound | COLOR | SHAPE | SWEEP | CONTOUR | DECAY |
+|---|---|---|---|---|---|
+| Default | 64 | 0 / 1 / 2 | 64 | 64 | 64 |
+| Mars | 64 | 0 / 1 / 2 | 64 | 64 | 56 / 57 / 65 |
+| Short | 64 | | 70 | 40 | 20 |
+| Long | 50 | | 60 | 80 | 110 |
+
+- PITCH: 64 gives LT 61, MT 92, HT 120 Hz settled; each hit starts about a third higher.
+- DECAY: the 909's DECAY, mostly the low oscillator's bloom.
+- Fill: one track, p-lock SHAPE 2, 1, 0 across the steps.
+
+## Cymbal (CHORD)
+
+COLOR Tone, SHAPE 0 crash / 1 ride, SWEEP Bits, DECAY (127 = as sampled). The CHORD slot shows COLOR and SHAPE values
+as chord names; the sound is right.
+
+| Sound | COLOR | SHAPE | SWEEP | DECAY |
+|---|---|---|---|---|
+| Crash | 64 | 0 | 0 | 127 |
+| Ride | 64 | 1 | 0 | 127, or 100 for shorter |
+| Lo-fi | | | 90-110 | |
