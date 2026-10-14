@@ -132,8 +132,10 @@ def run(fw, host, machine, kw, blocks, trigs, changes=None):
         ev.append(("upd", struct.unpack(">i6B", bytes(u.mem_read(kp, 10))), trig))
 
     def at_render(u, a, s, d):
-        ev.append(("rnd",))
         cur["out"] = struct.unpack(">I", bytes(u.mem_read(u.reg_read(mk.UC_M68K_REG_A7) + 4, 4)))[0]
+
+    def at_voice_render(u, a, s, d):     # the voice really renders (not a track the glue keeps silent: t9_cycles.c)
+        ev.append(("rnd",))
 
     def at_after(u, a, s, d):
         if cur["out"] is not None:
@@ -145,6 +147,7 @@ def run(fw, host, machine, kw, blocks, trigs, changes=None):
     for _, pre, _, _ in g9.MACHINES:
         a = fw.sym[f"t9_{pre}_render"]
         uc.hook_add(UC_HOOK_CODE, at_render, begin=a, end=a)
+    uc.hook_add(UC_HOOK_CODE, at_voice_render, begin=fw.sym["t9_render"], end=fw.sym["t9_render"])
     ah = int(load("30-model-tg-st.json")["symbols"]["ah_noenv"], 16)      # our render's buffer, before Model-TG's stage
     uc.hook_add(UC_HOOK_CODE, at_after, begin=ah, end=ah)
     outs, exact, rendered, knobs, kinds = [], True, 0, set(), []
@@ -168,6 +171,10 @@ def run(fw, host, machine, kw, blocks, trigs, changes=None):
                 did = True
                 rendered += 1
                 if len(got) != 1 or not np.array_equal(exp, got[0]):
+                    if exact and os.environ.get("T9_DEBUG"):
+                        k = int(np.argmax(exp != got[0])) if len(got) == 1 else -1
+                        print(f"    first mismatch: block {b}, sample {k}, host {exp[k] if k >= 0 else None}, "
+                              f"device {got[0][k] if len(got) == 1 else len(got)}")
                     exact = False
         if not did and np.any(out):
             exact = False
@@ -244,6 +251,13 @@ def sound(fw, host):
     out, exact, n, knobs, kinds, unm = run(fw, host, 3, dict(KW, shape=0), 160, (1, 90), changes={89: dict(shape=1)})
     shapes = sorted({k[3] for k in knobs})
     check(exact and shapes == [0, 1], f"RS/CP: SHAPE 0 -> 1 before the 2nd trig: rim then clap, still exact")
+    quiet = []
+    for m in (7, 8, 11, 31):              # a project made with other mods: machine numbers this OS does not have
+        e = fw.engine(solo=0)
+        e.set(0, machine=m, **dict(KW, shape=1, decay=127))
+        quiet.append(not np.any(np.stack([e.block(1 if b == 1 else 0)[0] for b in range(60)])) and not e.unmapped)
+    check(all(quiet), "tracks on machines 7, 8, 11, 31 (other mods' projects): silent, no stray reads "
+                      "(the voice loop sends them to the CHORD slot; the glue sees the machine is not its own)")
     out, exact, n, knobs, kinds, unm = run(fw, host, 0, dict(KW, decay=0), 400, (1,))
     check(exact and not np.any(out[-100:]),
           f"BD DECAY 0: the voice ends and stays silent (still exact; {n} of 400 blocks went through its render)")

@@ -38,11 +38,20 @@ static inline uint8_t knob(s32 x)                    /* 8.8 -> 0..127 */
 	return (uint8_t)(x < 0 ? 0 : x > 127 ? 127 : x);
 }
 
+static uint8_t foreign[6];                            /* the track's machine is not this one (see update) */
+
 static void update(int kind, s32 pmod, char *v, const char *p)
 {
 	struct t9_voice *t = voice_of(v);
 	struct t9_knobs k;
 	s32 n, d;
+
+	/* A track whose machine number this OS does not have (a project made with other mods: an added machine 7, 8,
+	 * ...) is sent by the voice loop to its last stock entry, the CHORD slot, with that machine's knob values: it
+	 * would play cymbals at random settings. The machine word (slot 9, p+0x12) tells: not ours -> silent. */
+	foreign[((u32)v - CYC_VOICE0) / CYC_VSTRIDE] = (P16(0x12) >> 8) != kind;
+	if (foreign[((u32)v - CYC_VOICE0) / CYC_VSTRIDE])
+		return;
 
 	if (V32(MARK_OFF) != MARK || t->kind != kind) {   /* first note on this machine */
 		t9_init(t, kind, 0x9090u + (u32)v);
@@ -66,6 +75,11 @@ static void render(s32 *out, char *v)
 	s32 buf[T9_BLOCK];
 	int i;
 
+	if (foreign[((u32)v - CYC_VOICE0) / CYC_VSTRIDE]) {
+		for (i = 0; i < T9_BLOCK; i++)
+			out[i] = 0;
+		return;
+	}
 	t9_render(voice_of(v), buf);
 	for (i = 0; i < T9_BLOCK; i++) {                 /* Q15 -> Q31 / 2, clipped */
 		s32 x = buf[i];

@@ -230,7 +230,9 @@ static void bd_render(struct t9_voice *v, s32 *out)
 		b->coup += q31(y - b->coup, BD_COUP);
 		out[i] = q31(y - b->coup, BD_OUT);
 	}
-	if (v->t > BD_HOLD && b->v1 < BD_THR - KNEE && b->env2 < 0x10000)
+	/* done when the VCA has closed, the click is gone and the coupling filter has settled: the output is silent,
+	 * so stopping it is not a step (it was up to -51 dB at short DECAYs before) */
+	if (v->t > BD_HOLD && b->v1 < BD_THR - KNEE && b->env2 < 0x10000 && out[T9_BLOCK - 1] > -2 && out[T9_BLOCK - 1] < 2)
 		v->active = 0;
 }
 
