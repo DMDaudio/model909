@@ -16,54 +16,48 @@ BD, SD, toms, rim and clap are integer models of the 909's circuits (triangle VC
 bridged-T resonators, the clap's burst VCA), with constants fitted to recordings of a real 909. The knobs follow the
 909's pots. PUNCH is the accent. Settings: [SOUNDS.md](SOUNDS.md).
 
-The 909's hats and cymbals are ROM samples. Here you supply four WAVs at build time; none are included.
+The 909's hats and cymbals are ROM samples. Here you supply four WAVs when you build; none are included.
 
 Experimental. Proven in emulation and used on a Model:Samples. Flash at your own risk.
 
-## Requirements
+## Install
 
-A [Modded-Cycles](https://github.com/18nelli18/Modded-Cycles) checkout, its ColdFire toolchain (`m68k-elf-gcc`),
-Python 3, ffmpeg, your official Model:Cycles OS 1.13 `.syx` (plus the Model:Samples OS 1.13 `.syx` for a Samples),
-and four samples: closed hat, open hat, crash, ride.
+Use the web flasher: <https://dmdaudio.github.io/Modded-Cycles/flasher/> (DMDaudio's fork of
+[Modded-Cycles](https://github.com/18nelli18/Modded-Cycles)). Tick **model909** (Model-TG and 6-channel USB are ticked
+with it), drop your official Model:Cycles OS 1.13 `.syx`, choose the four WAVs, flash over USB. It works for a
+Model:Samples too (pick it in step 2 and add its official OS file). Or download the `.syx` and drop it on Elektron
+Transfer.
 
-It is built on top of the Modded-Cycles tweaks `model-tg-st` ([Model-TG](https://github.com/TinyGregAudio/Model-TG))
-and `6ch-usbup` (6-channel USB audio). It does not combine with MACRO or the Syntakt engines.
+Your WAVs are converted in the browser (mono, 32 kHz, 4-bit ADPCM, about 5.6 s in all) and go into the firmware you
+build: share that `.syx` only if the samples' licence allows it.
 
-## Build
+It does not combine with MACRO, ACID or the Syntakt engines.
+
+## Build from the command line
+
+Needs Python 3, ffmpeg and the ColdFire toolchain (`m68k-elf-gcc`) to rebuild the tweak.
 
 ```sh
-git clone https://github.com/DMDaudio/model909
-git clone https://github.com/18nelli18/Modded-Cycles
-git -C Modded-Cycles checkout 0741d388        # the version model909 is tested against
-
-python3 model909/tools/mksamples.py --ch CH.wav --oh OH.wav --crash Crash.wav --ride Ride.wav
-
-cp model909/modded-cycles/tools/gen_t9.py Modded-Cycles/tools/
-cp model909/modded-cycles/tools/emu/test_t9.py Modded-Cycles/tools/emu/
+git clone https://github.com/DMDaudio/Modded-Cycles
 cd Modded-Cycles
-MODEL909=../model909 python3 tools/gen_t9.py --cycles model-cycles_OS1.13.syx
-MODEL909=../model909 python3 tools/emu/test_t9.py --cycles model-cycles_OS1.13.syx   # optional
-python3 tools/build.py -i model-cycles_OS1.13.syx -t model-tg-st,6ch-usbup,t9-tg -o model909.syx
+python3 tools/t9_bank.py --ch CH.wav --oh OH.wav --crash Crash.wav --ride Ride.wav -o t9_bank.bin
+python3 tools/build.py -i model-cycles_OS1.13.syx -t 6ch-usbup,model-tg-st,t9-tg --fill t9-samples=t9_bank.bin \
+    -o model909.syx
 ```
 
-`model909.syx` and `tweaks/model-cycles_OS1.13/34-t9-tg.json` contain your samples. Don't share them unless the
-samples' licence allows it.
+For a Model:Samples, pack it with `tools/mods_for_samples.py` (see its help).
 
-## Flash
-
-Model:Cycles: install `model909.syx` like an official update.
-
-Model:Samples: pack it into the Samples container and send it to MIDI IN from the startup menu (FUNC + power on,
-TRIG 4).
+To rebuild the tweak from this repo's `src/`:
 
 ```sh
-python3 ../model909/tools/pack_for_samples.py --samples model-samples_OS1.13.syx --cycles model-cycles_OS1.13.syx \
-    --guest model909.syx --expect-main <MAIN OS SHA-256 printed by build.py> -o model909_samples.syx
-python3 tools/flash.py model909_samples.syx --port "<MIDI interface>" --send
+MODEL909=../model909 python3 tools/gen_t9.py --cycles model-cycles_OS1.13.syx
+MODEL909=../model909 python3 tools/emu/test_t9.py --cycles model-cycles_OS1.13.syx
 ```
 
-To go back, install the official OS the same way. Clear patterns that use a machine that won't exist after the
-flash, or the MACHINES menu can freeze.
+`tools/mksamples.py` here makes the same bank (`out/t9_bank.bin`); `host/render` plays it with `T9_BANK_FILE`.
+
+To go back, install the official OS. Clear patterns that use a machine that won't exist after the flash, or the
+MACHINES menu can freeze.
 
 ## Notes
 
@@ -79,8 +73,7 @@ flash, or the MACHINES menu can freeze.
 - `proto/` float prototypes, matcher and fitter, fits
 - `research/909-circuits.md` circuit notes with sources
 - `host/render.c` render a hit to WAV on a computer
-- `tools/` sample encoder, table generator, Model:Samples packer
-- `modded-cycles/` tweak generator and emulation test for a Modded-Cycles checkout
+- `tools/` sample bank encoder, table generator, Model:Samples packer
 
 To refit to your own 909 recordings, put them in `refs/` (names as in `proto/fits/`), run `proto/fit_voice.py`,
 then `proto/gen_cal.py`.

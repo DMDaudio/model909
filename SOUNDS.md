@@ -6,23 +6,27 @@ fitted to.
 
 ## BD (KICK)
 
-COLOR Attack, SHAPE Drive, SWEEP Sweep depth, CONTOUR Sweep time, DECAY.
+COLOR Attack, SHAPE Drive, SWEEP Sweep depth, CONTOUR Tune (sweep time), DECAY. CONTOUR, COLOR and DECAY follow a
+real 909's TUNE, ATTACK and DECAY pots (measured at 5 positions each): 0..127 = the pot's 0..100 %.
 
 | Sound | COLOR | SHAPE | SWEEP | CONTOUR | DECAY |
 |---|---|---|---|---|---|
-| Default | 64 | 64 | 64 | 64 | 64 |
-| Mars Clean Long A | 82 | 64 | 64 | 27 | 127 |
-| Mars Tape Medium F | 48 | 64 | 64 | 109 | 89 |
-| Mars Tube Long F | 65 | 64 | 64 | 110 | 116 |
-| Hard techno | 90 | 80 | 64 | 40 | 50 |
+| Default (pots at half) | 64 | 64 | 64 | 64 | 64 |
+| Mars Clean Long A | 44 | 64 | 64 | 0 | 127 |
+| Mars Tape Medium F | 127 | 64 | 64 | 127 | 32 |
+| Mars Tube Long F | 127 | 64 | 64 | 127 | 112 |
+| Hard techno | 100 | 80 | 70 | 20 | 40 |
 | Distorted | 70 | 100-127 | 64 | 60 | 70 |
 | No click | 0 | 30 | 50 | 80 | 110 |
 
-- COLOR: the 909's ATTACK over 16..127; below 16 the click fades out.
-- CONTOUR: the 909's TUNE (sweep time constant, 4 to 40 ms; the 909's range is about 30..110).
-- DECAY: the 909's DECAY. Short hold, then a tail that cuts off.
+(The Mars rows are accented hits: PUNCH on.)
+
+- CONTOUR: the 909's TUNE, the pitch sweep's time constant from 7.6 ms (0) to 28 ms (127); most of the change is
+  in the top quarter, as on the real pot.
+- COLOR: the 909's ATTACK over 16..127 (about 6 dB of click); below 16 the click fades out.
+- DECAY: the 909's DECAY. Short hold, then a tail that cuts off (-20 dB at about 80 ms to 210 ms, unaccented).
 - SHAPE: 64 is the 909, lower is rounder, higher drives toward a square.
-- SWEEP: depth of the pitch drop (64: about 280 Hz above the 49 Hz base). PITCH moves the whole kick.
+- SWEEP: depth of the pitch drop (64: about 270 Hz above the 49.5 Hz base). PITCH moves the whole kick.
 
 ## SD (SNARE)
 

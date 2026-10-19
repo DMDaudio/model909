@@ -159,8 +159,9 @@ COLD static u32 kscale(int knob)
  * the transistor's threshold. Click (ATTACK): the 2 ms trig pulse differentiated and rung by a 3.7 kHz low-pass,
  * plus noise low-passed at 513 Hz, on a 0.7 ms envelope.
  *   PITCH: fb (49.5 Hz) and the sweep   DECAY: the 909's DECAY   COLOR: ATTACK (0: off, 16..127: the 909's range)
- *   SHAPE: the diode drive (64: the 909; down to a sine, up to 10x: square)   SWEEP: sweep depth (64: 230 Hz)
- *   CONTOUR: the 909's TUNE, the sweep's time constant 4..40 ms                                                */
+ *   SHAPE: the diode drive (64: the 909; down to a sine, up to 10x: square)   SWEEP: sweep depth (64: the 909)
+ *   CONTOUR: the 909's TUNE, 0..127 = its pot 0..100 % (sweep time constant 7.6 .. 28 ms, measured)
+ * The pots' curves are a real 909's (the AudioRealism TR-909 pack: TUNE x ATTACK x DECAY at 5 positions each).  */
 
 COLD static void bd_update(struct t9_voice *v, const struct t9_knobs *k, int trig)
 {
@@ -169,15 +170,23 @@ COLD static void bd_update(struct t9_voice *v, const struct t9_knobs *k, int tri
 
 	b->inc_b = (s32)(inc_of(BD_FB_HZ16, k->note) >> 1);
 	b->inc_df = (s32)ratio(inc_of(BD_DF_HZ16, k->note) >> 1, kscale(k->sweep));
-	b->kp = kexpo(kexp(k->contour, 4 * 48 * 16, 40 * 48 * 16));
+	{                                                          /* CONTOUR = the 909's TUNE: its measured pot */
+		s32 x = k->contour * 4 * 256 / 127, j = x >> 8 < 3 ? x >> 8 : 3, f = x - (j << 8);
+		s32 l0 = lg(bd_tune16[j]), l1 = lg(bd_tune16[j + 1]);
+		b->kp = kexpo(pow2(l0 + (((l1 - l0) * f) >> 8)));
+	}
 	if (k->shape <= 64)
 		b->tp = BD_TP_SINE + ((BD_TP - BD_TP_SINE) >> 6) * k->shape;
 	else
 		b->tp = (s32)ratio(BD_TP, pow2((16 << 16) + (k->shape - 64) * 3456));
-	p = pow2((16 << 16) + k->decay * 3428);                   /* 10^(2 DECAY), Q16: the 1 MOhm audio-taper pot */
-	rd = 47000 + (((p - 65536) >> 8) * 10101 >> 8);
+	p = pow2((16 << 16) + k->decay * BD_DEC_L2 / 127);       /* the DECAY pot's taper (fitted), Q16 */
+	rd = 47000 + (((p - 65536) >> 8) * BD_DEC_K >> 8);
 	b->ka = (s32)((BD_KA / rd) << BD_KA_SH);
-	b->att = k->color < 16 ? (BD_ATT0 >> 4) * k->color : BD_ATT0 + (BD_ATT1 - BD_ATT0) / 111 * (k->color - 16);
+	{                                                          /* COLOR = ATTACK over 16..127 (the real curve), */
+		s32 a = k->color < 16 ? 0 : (k->color - 16) * 32767 / 111;        /* fading the click out below 16 */
+		s32 att = BD_F0 + q31((1 << 30) - BD_F0, ((a * a) >> 15) << 16);
+		b->att = k->color < 16 ? (BD_F0 >> 4) * k->color : att;
+	}
 	if (trig) {
 		b->t.v = 0;
 		b->dif = b->nhp = b->nlp = b->coup = 0;

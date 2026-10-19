@@ -1,5 +1,6 @@
 /* Renders one T9 hit to a 48 kHz 16-bit WAV.
  *   render KIND DECAY COLOR SHAPE SWEEP CONTOUR NOTE MS out.wav     (KIND: bd sd hh rc tom cy)
+ * The hats and cymbals play the sample bank named by $T9_BANK_FILE (tools/mksamples.py --bank).
  * Also prints the cost: peak and mean CPU cycles are not measurable here, only output.
  */
 #include <stdio.h>
@@ -9,6 +10,21 @@
 
 static void put32(FILE *f, unsigned v) { fputc(v, f); fputc(v >> 8, f); fputc(v >> 16, f); fputc(v >> 24, f); }
 static void put16(FILE *f, unsigned v) { fputc(v, f); fputc(v >> 8, f); }
+
+extern const unsigned char *t9_bank;
+
+static void load_bank(void)
+{
+	static unsigned char bank[T9_BANK_SIZE];
+	const char *name = getenv("T9_BANK_FILE");
+	FILE *f = name ? fopen(name, "rb") : NULL;
+
+	if (f) {
+		fread(bank, 1, sizeof bank, f);
+		fclose(f);
+		t9_bank = bank;
+	}
+}
 
 int main(int argc, char **argv)
 {
@@ -28,6 +44,7 @@ int main(int argc, char **argv)
 			kind = i;
 	if (kind < 0)
 		return 2;
+	load_bank();
 	k.decay = atoi(argv[2]); k.color = atoi(argv[3]); k.shape = atoi(argv[4]);
 	k.sweep = atoi(argv[5]); k.contour = atoi(argv[6]); k.note = atoi(argv[7]) << 16;
 	k.accent = argc == 11 && atoi(argv[10]);

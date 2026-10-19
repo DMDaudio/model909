@@ -11,7 +11,6 @@
  */
 #include "t9.h"
 #include "t9_tables.h"
-#include "t9_samples.h"
 
 typedef int32_t s32;
 typedef uint32_t u32;
@@ -174,10 +173,44 @@ static inline s32 clip15(s32 x)
  *   COLOR: tone (low-pass at 0, flat at 64, high-pass above)   SHAPE: 0 CH / 1 OH, or 0 crash / 1 ride
  *   SWEEP: bits (0: all, 127: 5 bits)   CONTOUR: -                                                           */
 
+/* The four samples live in a bank the builder fills (model909's tools/mksamples.py --bank, or the web flasher, from the
+ * user's own WAVs): big-endian 'T9SB', the rate (Hz), then per sample (CH, OH, crash, ride) its offset from the bank's
+ * start and its length in samples, then the ADPCM. A bank that is missing or doesn't fit leaves the voices silent. */
+#ifdef T9_BANK
+#define BANK ((const uint8_t *)T9_BANK)
+#else
+const uint8_t *t9_bank;                                    /* host builds: set by the caller */
+#define BANK t9_bank
+#endif
+#define T9_BANK_MAGIC 0x54395342u                          /* 'T9SB' */
+
 struct t9_sample { const uint8_t *data; u32 len; };
-static const struct t9_sample samples[4] = {
-	{ t9_s_ch, T9_S_CH_LEN }, { t9_s_oh, T9_S_OH_LEN }, { t9_s_crash, T9_S_CRASH_LEN }, { t9_s_ride, T9_S_RIDE_LEN },
-};
+
+static u32 rd32(const uint8_t *p)
+{
+	return (u32)p[0] << 24 | (u32)p[1] << 16 | (u32)p[2] << 8 | p[3];
+}
+
+static u32 bank_rate(void)
+{
+	return BANK && rd32(BANK) == T9_BANK_MAGIC ? rd32(BANK + 4) : 0;
+}
+
+static struct t9_sample bank_sample(int i)
+{
+	struct t9_sample s = { 0, 0 };
+	u32 r = bank_rate(), off, len;
+
+	if (r < 8000 || r > 48000)
+		return s;
+	off = rd32(BANK + 8 + 8 * i);
+	len = rd32(BANK + 12 + 8 * i);
+	if (off < 40 || off > T9_BANK_SIZE || len > 2 * (T9_BANK_SIZE - off))
+		return s;
+	s.data = BANK + off;
+	s.len = len;
+	return s;
+}
 
 static inline s32 ima_next(struct t9_voice *v)
 {
@@ -200,9 +233,9 @@ COLD static void smp_update(struct t9_voice *v, const struct t9_knobs *k, int tr
 	if (trig) {
 		/* SHAPE: 0 CH, 1 OH, 2 crash, 3 ride (one machine for all four: a new hit cuts the last, as the 909's
 		 * closed hat chokes its open one) */
-		const struct t9_sample *s = &samples[v->kind == T9_CY ? 2 + (k->shape ? 1 : 0) : k->shape > 3 ? 3 : k->shape];
-		v->adpcm = s->data;
-		v->len = s->len;
+		struct t9_sample s = bank_sample(v->kind == T9_CY ? 2 + (k->shape ? 1 : 0) : k->shape > 3 ? 3 : k->shape);
+		v->adpcm = s.data;
+		v->len = s.len;
 		v->pos = 0;
 		v->dec_at = 0;
 		v->pred = v->idx = 0;
@@ -211,8 +244,8 @@ COLD static void smp_update(struct t9_voice *v, const struct t9_knobs *k, int tr
 		v->lp1 = 0;
 		v->active = 1;
 	}
-	/* T9_S_RATE / SR x 2^(note - 60 / 12), Q16 */
-	v->step = pow2((16 << 16) + lg(T9_S_RATE) - lg(SR) + (k->note - (60 << 16)) / 12);
+	/* the bank's rate / SR x 2^(note - 60 / 12), Q16 */
+	v->step = pow2((16 << 16) + lg(bank_rate() ? bank_rate() : SR) - lg(SR) + (k->note - (60 << 16)) / 12);
 	v->ka = k->decay >= 127 ? ONE31 : kdecay(kexp(k->decay, 20 * 16, 3000 * 16));
 	v->mix = k->color;
 	v->asym = ~((1 << (k->sweep * 11 / 127)) - 1);        /* bits kept: 16 .. 5 */

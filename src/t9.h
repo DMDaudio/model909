@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 
+#define T9_BANK_SIZE 0x2c000u                              /* the sample bank (t9.c): 180224 bytes */
 #define T9_BLOCK 32
 
 enum { T9_BD, T9_SD, T9_HH, T9_RC, T9_TOM, T9_CY, T9_KINDS };

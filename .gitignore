@@ -1,5 +1,5 @@
 # your own samples, references and builds: never commit them
-src/t9_samples.h
+t9_bank*.bin
 refs/
 out/
 *.syx
