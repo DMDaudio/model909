@@ -29,6 +29,7 @@ struct t9_knobs {
 	int32_t note;                       /* semitones << 16 */
 	uint8_t decay, color, shape, sweep, contour;
 	uint8_t accent;                     /* PUNCH: the 909's accent, read at the trig */
+	uint8_t fine;                       /* FINE, 0..127: the 909 kick's drive and snare's tone (SHAPE picks 909/808/606) */
 };
 
 /* the analog voices' parts (t9_analog.inc) */
@@ -73,8 +74,22 @@ struct t9_hcv {
 	struct t9_svf bp;
 };
 
+/* the 808's (t9_808.inc) */
+struct t9_bd8v { struct t9_svf r; int32_t sx1, sy1, A, lp, hp, klp, vt, sigh; uint32_t n22, fb16, fatt16; };
+struct t9_sd8v { struct svfc lc, hc; struct t9_svf lo, hi; struct t9_bq hpb; int32_t prev, cap, sm, hp2, lp, vt, snap, tone; };
+struct t9_tom8cal;
+struct t9_bank8 { uint32_t ph[6], inc[6]; };
+struct t9_cb8v { struct t9_bank8 bank; int32_t ef, es, lp; struct t9_bq bp1, bp2; };
+struct t9_hh8v { struct t9_bank8 bank; int32_t e, tune, sx1, sy1; uint32_t delay; uint8_t open; struct t9_bq bp, hp; };
+struct t9_cy8v { struct t9_bank8 bank; int32_t lr, el, hf, ht, kd, tone, sx1, sy1; struct t9_bq bp1, bp2, hp1, hp2; };
+struct t9_cp8v { int32_t vt, eb, r1, r2, bhp, lp; struct t9_bq bp, rb; };
+struct t9_rs8v { struct svfc lc, hc; struct t9_svf lo, hi; int32_t vt, g, fade; struct t9_bq hp; };
+struct t9_ma8v { int32_t gate, a, hp1, lp; struct t9_bq hp2; };
+struct t9_tom8v { const struct t9_tom8cal *c; uint32_t f16; int32_t vt, dif, prev, A, cap, nhp, nlp, olp; struct t9_svf r; struct t9_bq pn; };
+
 struct t9_voice {
 	uint8_t kind, sub, active;          /* machine, sub-voice (from SHAPE at the trig), sounding */
+	uint8_t fam;                        /* 0 909, 1 808, 2 606 (from SHAPE at the trig) */
 	uint32_t rng;
 	int32_t t;                          /* samples since the trig */
 	int32_t acc;                        /* output gain, Q12 (the sample voices' accent) */
@@ -87,6 +102,15 @@ struct t9_voice {
 		struct t9_tomv tom;
 		struct t9_rsv rs;
 		struct t9_hcv hc;
+		struct t9_bd8v bd8;
+		struct t9_sd8v sd8;
+		struct t9_tom8v tom8;
+		struct t9_cb8v cb8;
+		struct t9_hh8v hh8;
+		struct t9_cy8v cy8;
+		struct t9_cp8v cp8;
+		struct t9_rs8v rs8;
+		struct t9_ma8v ma8;
 	} a;
 	/* sample playback */
 	int32_t aenv, ka, mix, asym, fa, lp1;

@@ -175,10 +175,10 @@ COLD static void bd_update(struct t9_voice *v, const struct t9_knobs *k, int tri
 		s32 l0 = lg(bd_tune16[j]), l1 = lg(bd_tune16[j + 1]);
 		b->kp = kexpo(pow2(l0 + (((l1 - l0) * f) >> 8)));
 	}
-	if (k->shape <= 64)
-		b->tp = BD_TP_SINE + ((BD_TP - BD_TP_SINE) >> 6) * k->shape;
+	if (k->fine <= 64)                                     /* FINE (SHAPE picks 909/808/606) */
+		b->tp = BD_TP_SINE + ((BD_TP - BD_TP_SINE) >> 6) * k->fine;
 	else
-		b->tp = (s32)ratio(BD_TP, pow2((16 << 16) + (k->shape - 64) * 3456));
+		b->tp = (s32)ratio(BD_TP, pow2((16 << 16) + (k->fine - 64) * 3456));
 	p = pow2((16 << 16) + k->decay * BD_DEC_L2 / 127);       /* the DECAY pot's taper (fitted), Q16 */
 	rd = 47000 + (((p - 65536) >> 8) * BD_DEC_K >> 8);
 	b->ka = (s32)((BD_KA / rd) << BD_KA_SH);
@@ -268,7 +268,7 @@ COLD static void sd_update(struct t9_voice *v, const struct t9_knobs *k, int tri
 	s->ka4 = (s32)((SD_KA4 / rdec) << SD_KA4_SH);
 	s->ga = q31(SD_SGAIN, ONE31 / 127 * k->color);             /* SNAPPY x the paths' gains, Q24 */
 	s->gb = q31(SD_BGAIN, ONE31 / 127 * k->color);
-	svf_set(&s->lpc, ratio(inc_of(SD_LPF_HZ16, 60 << 16), kscale(k->shape)), SD_LPK);
+	svf_set(&s->lpc, ratio(inc_of(SD_LPF_HZ16, 60 << 16), kscale(k->fine)), SD_LPK);
 	if (trig) {
 		s32 a = ACC(SD_ACC, k->accent);
 		s->t1.v = s->t2.v = 0;

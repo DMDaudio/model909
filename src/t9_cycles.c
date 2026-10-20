@@ -57,8 +57,12 @@ static void update(int kind, s32 pmod, char *v, const char *p)
 		t9_init(t, kind, 0x9090u + (u32)v);
 		V32(MARK_OFF) = MARK;
 	}
-	/* note: PITCH - 64 + the trig's note + FINE (+-2 semitones), like the stock machines */
-	n = ((s32)P16(0x14) << 8) + (((s32)P16(0x22) - 0x4000) << 3) - (64 << 16) + pmod;
+	/* note: PITCH - 64 + the trig's note + FINE (+-2 semitones), like the stock machines. On KICK and SNARE, SHAPE
+	 * picks 909 / 808 / 606, and FINE takes over what SHAPE did there (the 909 kick's drive, its snare's tone). */
+	n = ((s32)P16(0x14) << 8) - (64 << 16) + pmod;
+	if (kind != T9_BD && kind != T9_SD)
+		n += ((s32)P16(0x22) - 0x4000) << 3;
+	k.fine = knob(P16(0x22));
 	k.note = n < 0 ? 0 : n > (127 << 16) ? 127 << 16 : n;
 	d = (signed char)p[0x24];
 	k.decay = (uint8_t)(d < 0 ? 0 : d > 127 ? 127 : d);

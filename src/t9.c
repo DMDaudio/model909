@@ -166,6 +166,7 @@ static inline s32 clip15(s32 x)
 }
 
 #include "t9_analog.inc"
+#include "t9_808.inc"
 
 /* ---- hats and cymbals: IMA ADPCM samples ----------------------------------------------------------------- *
  * The 909 plays its hats and cymbals from 6-bit ROMs; here 909 recordings at 32 kHz, 4-bit ADPCM.
@@ -287,6 +288,24 @@ static void smp_render(struct t9_voice *v, s32 *out)
 
 /* ---- entry points ---------------------------------------------------------------------------------------- */
 
+/* SHAPE at the trig -> the voice's family (0 909, 1 808, 2 606) and its sub-voice for the 808's:
+ *   KICK, SNARE: 0 909, 1 808
+ *   METAL: 0 / 1 the 909's closed / open hat (samples), 2 / 3 the 808's closed / open hat
+ *   PERC: 0 / 1 the 909's rim / clap, 2 rim shot, 3 hand clap, 4 claves, 5 maracas, 6 cowbell (808)
+ *   TONE: 0..2 the 909's low / mid / high tom, 3..8 the 808's low / mid / high tom, low / mid / high conga
+ *   CHORD: 0 / 1 the 909's crash / ride (samples), 2 the 808's cymbal                                        */
+static int family(struct t9_voice *v, int shape)
+{
+	switch (v->kind) {
+	case T9_BD: case T9_SD: return shape >= 1;
+	case T9_HH: if (shape < 2) return 0; v->sub = shape > 3 ? 1 : shape - 2; return 1;
+	case T9_RC: if (shape < 2) return 0; v->sub = shape > 6 ? 6 : shape; return 1;
+	case T9_TOM: if (shape < 3) return 0; v->sub = shape > 8 ? 5 : shape - 3; return 1;
+	case T9_CY: return shape >= 2;
+	default: return 0;
+	}
+}
+
 void t9_init(struct t9_voice *v, int kind, u32 seed)
 {
 	char *p = (char *)v;
@@ -310,16 +329,39 @@ void t9_update(struct t9_voice *v, const struct t9_knobs *k, int trig)
 	/* the coefficients only change with the knobs or the note: without a trig and with the same knobs (most
 	 * blocks, and every block of a silent track), there is nothing to recompute */
 	if (!trig && v->kn.note == k->note && v->kn.decay == k->decay && v->kn.color == k->color &&
-	    v->kn.shape == k->shape && v->kn.sweep == k->sweep && v->kn.contour == k->contour && v->kn.accent == k->accent) {
+	    v->kn.shape == k->shape && v->kn.sweep == k->sweep && v->kn.contour == k->contour && v->kn.accent == k->accent &&
+	    v->kn.fine == k->fine) {
 		emac_leave(&e);
 		return;
 	}
-	v->kn = *k;
-	switch (v->kind) {
-	case T9_BD: bd_update(v, k, trig); break;
-	case T9_SD: sd_update(v, k, trig); break;
-	case T9_TOM: tom_update(v, k, trig); break;
-	case T9_RC: rc_update(v, k, trig); break;
+	v->kn.note = k->note;                             /* field by field: a struct copy is a memcpy call */
+	v->kn.decay = k->decay;
+	v->kn.color = k->color;
+	v->kn.shape = k->shape;
+	v->kn.sweep = k->sweep;
+	v->kn.contour = k->contour;
+	v->kn.accent = k->accent;
+	v->kn.fine = k->fine;
+	if (trig)                                         /* SHAPE, read at the trig: the family (and the sub-voice) */
+		v->fam = (uint8_t)family(v, k->shape);
+	switch (v->kind * 4 + v->fam) {
+	case T9_BD * 4 + 1: bd8_update(v, k, trig); break;
+	case T9_SD * 4 + 1: sd8_update(v, k, trig); break;
+	case T9_TOM * 4 + 1: tom8_update(v, k, trig, v->sub); break;
+	case T9_HH * 4 + 1: hh8_update(v, k, trig); break;
+	case T9_CY * 4 + 1: cy8_update(v, k, trig); break;
+	case T9_RC * 4 + 1:
+		switch (v->sub) {
+		case 3: cp8_update(v, k, trig); break;
+		case 5: ma8_update(v, k, trig); break;
+		case 6: cb8_update(v, k, trig); break;
+		default: rs8_update(v, k, trig); break;
+		}
+		break;
+	case T9_BD * 4: bd_update(v, k, trig); break;
+	case T9_SD * 4: sd_update(v, k, trig); break;
+	case T9_TOM * 4: tom_update(v, k, trig); break;
+	case T9_RC * 4: rc_update(v, k, trig); break;
 	default: smp_update(v, k, trig); break;
 	}
 	emac_leave(&e);
@@ -333,7 +375,10 @@ static void declick(struct t9_voice *v, s32 *out)
 	int i;
 
 	if (v->start) {
-		s32 d = v->last - out[0];
+		/* the 909's voices start from 0: the step from the old note's last sample to the new first one is faded.
+		 * The 808's and 606's start on an instant click (their trig through the coupling caps): only the old
+		 * note's level is faded out, the new hit is kept whole. */
+		s32 d = v->fam ? v->last : v->last - out[0];
 		v->dc_off = d > 65535 ? 65535 : d < -65535 ? -65535 : d;
 		v->dc_n = 0;
 		v->start = 0;
@@ -358,11 +403,24 @@ void t9_render(struct t9_voice *v, s32 *out)
 		return;
 	}
 	emac_enter(&e);
-	switch (v->kind) {
-	case T9_BD: bd_render(v, out); break;
-	case T9_SD: sd_render(v, out); break;
-	case T9_TOM: tom_render(v, out); break;
-	case T9_RC: if (v->sub) clap_render(v, out); else rim_render(v, out); break;
+	switch (v->kind * 4 + v->fam) {
+	case T9_BD * 4 + 1: bd8_render(v, out); break;
+	case T9_SD * 4 + 1: sd8_render(v, out); break;
+	case T9_TOM * 4 + 1: tom8_render(v, out); break;
+	case T9_HH * 4 + 1: hh8_render(v, out); break;
+	case T9_CY * 4 + 1: cy8_render(v, out); break;
+	case T9_RC * 4 + 1:
+		switch (v->sub) {
+		case 3: cp8_render(v, out); break;
+		case 5: ma8_render(v, out); break;
+		case 6: cb8_render(v, out); break;
+		default: rs8_render(v, out); break;
+		}
+		break;
+	case T9_BD * 4: bd_render(v, out); break;
+	case T9_SD * 4: sd_render(v, out); break;
+	case T9_TOM * 4: tom_render(v, out); break;
+	case T9_RC * 4: if (v->sub) clap_render(v, out); else rim_render(v, out); break;
 	default: smp_render(v, out); break;
 	}
 	emac_leave(&e);
