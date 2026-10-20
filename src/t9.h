@@ -85,6 +85,14 @@ struct t9_cy8v { struct t9_bank8 bank; int32_t lr, el, hf, ht, kd, tone, sx1, sy
 struct t9_cp8v { int32_t vt, eb, r1, r2, bhp, lp; struct t9_bq bp, rb; };
 struct t9_rs8v { struct svfc lc, hc; struct t9_svf lo, hi; int32_t vt, g, fade; struct t9_bq hp; };
 struct t9_ma8v { int32_t gate, a, hp1, lp; struct t9_bq hp2; };
+/* the 606's (t9_606.inc) */
+struct t9_bd6v { struct svfc bc, cc; struct t9_svf b, c; int32_t vt, lp; };
+struct t9_sd6v { struct t9_svf r; struct t9_bq hp; uint32_t f16, n22; int32_t vt, dif, prev, gl, cap, sm, kd, hp2, lp; };
+struct t9_hh6v { struct t9_bank8 bank; int32_t e, k, tune, h1; uint8_t open; struct t9_bq bp, hp; };
+struct t9_cy6v { struct t9_bank8 bank; int32_t ea, ebf, ebs, es, ka, kf, ks, ld; struct t9_bq bp, hb, hd; };
+struct t9_tom6cal;
+struct t9_tom6v { const struct t9_tom6cal *c; struct svfc gc; struct t9_svf r, g; struct t9_bq pn; uint32_t f16, n22;
+	int32_t vt, dif, prev, gl, cap, nh, nl, lp; };
 struct t9_tom8v { const struct t9_tom8cal *c; uint32_t f16; int32_t vt, dif, prev, A, cap, nhp, nlp, olp; struct t9_svf r; struct t9_bq pn; };
 
 struct t9_voice {
@@ -111,6 +119,11 @@ struct t9_voice {
 		struct t9_cp8v cp8;
 		struct t9_rs8v rs8;
 		struct t9_ma8v ma8;
+		struct t9_bd6v bd6;
+		struct t9_sd6v sd6;
+		struct t9_tom6v tom6;
+		struct t9_hh6v hh6;
+		struct t9_cy6v cy6;
 	} a;
 	/* sample playback */
 	int32_t aenv, ka, mix, asym, fa, lp1;

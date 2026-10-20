@@ -167,6 +167,7 @@ static inline s32 clip15(s32 x)
 
 #include "t9_analog.inc"
 #include "t9_808.inc"
+#include "t9_606.inc"
 
 /* ---- hats and cymbals: IMA ADPCM samples ----------------------------------------------------------------- *
  * The 909 plays its hats and cymbals from 6-bit ROMs; here 909 recordings at 32 kHz, 4-bit ADPCM.
@@ -289,19 +290,32 @@ static void smp_render(struct t9_voice *v, s32 *out)
 /* ---- entry points ---------------------------------------------------------------------------------------- */
 
 /* SHAPE at the trig -> the voice's family (0 909, 1 808, 2 606) and its sub-voice for the 808's:
- *   KICK, SNARE: 0 909, 1 808
- *   METAL: 0 / 1 the 909's closed / open hat (samples), 2 / 3 the 808's closed / open hat
+ *   KICK, SNARE: 0 909, 1 808, 2 606
+ *   METAL: 0 / 1 the 909's closed / open hat (samples), 2 / 3 the 808's, 4 / 5 the 606's closed / open hat
  *   PERC: 0 / 1 the 909's rim / clap, 2 rim shot, 3 hand clap, 4 claves, 5 maracas, 6 cowbell (808)
- *   TONE: 0..2 the 909's low / mid / high tom, 3..8 the 808's low / mid / high tom, low / mid / high conga
- *   CHORD: 0 / 1 the 909's crash / ride (samples), 2 the 808's cymbal                                        */
+ *   TONE: 0..2 the 909's low / mid / high tom, 3..8 the 808's low / mid / high tom, low / mid / high conga,
+ *         9 / 10 the 606's low / high tom
+ *   CHORD: 0 / 1 the 909's crash / ride (samples), 2 the 808's cymbal, 3 the 606's                                        */
 static int family(struct t9_voice *v, int shape)
 {
 	switch (v->kind) {
-	case T9_BD: case T9_SD: return shape >= 1;
-	case T9_HH: if (shape < 2) return 0; v->sub = shape > 3 ? 1 : shape - 2; return 1;
+	case T9_BD: case T9_SD: return shape >= 2 ? 2 : shape;
+	case T9_HH:
+		if (shape < 2)
+			return 0;
+		v->sub = (shape - 2) & 1;                     /* closed, open */
+		return shape >= 4 ? 2 : 1;
 	case T9_RC: if (shape < 2) return 0; v->sub = shape > 6 ? 6 : shape; return 1;
-	case T9_TOM: if (shape < 3) return 0; v->sub = shape > 8 ? 5 : shape - 3; return 1;
-	case T9_CY: return shape >= 2;
+	case T9_TOM:
+		if (shape < 3)
+			return 0;
+		if (shape >= 9) {
+			v->sub = shape > 9;                       /* 9 low, 10 high */
+			return 2;
+		}
+		v->sub = shape - 3;
+		return 1;
+	case T9_CY: return shape >= 3 ? 2 : shape >= 2;
 	default: return 0;
 	}
 }
@@ -348,6 +362,11 @@ void t9_update(struct t9_voice *v, const struct t9_knobs *k, int trig)
 	case T9_BD * 4 + 1: bd8_update(v, k, trig); break;
 	case T9_SD * 4 + 1: sd8_update(v, k, trig); break;
 	case T9_TOM * 4 + 1: tom8_update(v, k, trig, v->sub); break;
+	case T9_BD * 4 + 2: bd6_update(v, k, trig); break;
+	case T9_SD * 4 + 2: sd6_update(v, k, trig); break;
+	case T9_TOM * 4 + 2: tom6_update(v, k, trig, v->sub); break;
+	case T9_HH * 4 + 2: hh6_update(v, k, trig); break;
+	case T9_CY * 4 + 2: cy6_update(v, k, trig); break;
 	case T9_HH * 4 + 1: hh8_update(v, k, trig); break;
 	case T9_CY * 4 + 1: cy8_update(v, k, trig); break;
 	case T9_RC * 4 + 1:
@@ -407,6 +426,11 @@ void t9_render(struct t9_voice *v, s32 *out)
 	case T9_BD * 4 + 1: bd8_render(v, out); break;
 	case T9_SD * 4 + 1: sd8_render(v, out); break;
 	case T9_TOM * 4 + 1: tom8_render(v, out); break;
+	case T9_BD * 4 + 2: bd6_render(v, out); break;
+	case T9_SD * 4 + 2: sd6_render(v, out); break;
+	case T9_TOM * 4 + 2: tom6_render(v, out); break;
+	case T9_HH * 4 + 2: hh6_render(v, out); break;
+	case T9_CY * 4 + 2: cy6_render(v, out); break;
 	case T9_HH * 4 + 1: hh8_render(v, out); break;
 	case T9_CY * 4 + 1: cy8_render(v, out); break;
 	case T9_RC * 4 + 1:
