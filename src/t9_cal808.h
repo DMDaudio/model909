@@ -2,23 +2,23 @@
 #ifndef T9_CAL808_H
 #define T9_CAL808_H
 
-#define BD8_VT 92923995  /* the trig voltage unaccented: 5.54 V (fit) */
-#define BD8_FB16 810  /* settled 50.62 Hz */
-#define BD8_FATT16 2127  /* attack window 133.0 Hz */
-#define BD8_WIN 335  /* the trig + 6.0 ms */
-#define BD8_SIGH 8796  /* fb sc / sa: the sigh's Hz16 x 256 per unit of softplus */
-#define BD8_SA 448881822
-#define BD8_SK 18011443
-#define BD8_EG 336601051
-#define BD8_BPG 193803473
-#define BD8_CLIP 7862220
+#define BD8_VT 96446103  /* the trig voltage unaccented: 5.75 V (fit) */
+#define BD8_FB16 804  /* settled 50.25 Hz */
+#define BD8_FATT16 2320  /* attack window 145.0 Hz */
+#define BD8_WIN 378  /* the trig + 6.9 ms */
+#define BD8_SIGH 13732  /* fb sc / sa: the sigh's Hz16 x 256 per unit of softplus */
+#define BD8_SA 480632220
+#define BD8_SK 15549226
+#define BD8_EG 372712353
+#define BD8_BPG 1544755089
+#define BD8_CLIP 6186002
 static const s32 bd8_shelf[3] = { 936532726, -923627522, -786418424 };
 static const uint16_t bd8_tau_ms[6] = { 18, 42, 130, 250, 550, 1045 };
-#define BD8_TF_LO 666
-#define BD8_TF_HI 6092
+#define BD8_TF_LO 664
+#define BD8_TF_HI 6407
 #define BD8_KA 2138554415
 #define BD8_COUP 2247663
-#define BD8_OUT 1264460  /* fit: tone 0.55 */
+#define BD8_OUT 421374  /* fit: tone 0.57 */
 
 #define SD8_VT 67108864
 #define SD8_LO_INC 15690561u  /* 175.4 Hz */

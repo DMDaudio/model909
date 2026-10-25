@@ -356,8 +356,18 @@ void t9_update(struct t9_voice *v, const struct t9_knobs *k, int trig)
 	v->kn.contour = k->contour;
 	v->kn.accent = k->accent;
 	v->kn.fine = k->fine;
-	if (trig)                                         /* SHAPE, read at the trig: the family (and the sub-voice) */
+	if (trig) {                                       /* SHAPE, read at the trig: the family (and the sub-voice) */
+		int fam = v->fam, sub = v->sub;
+		char *p = (char *)&v->a;
+		u32 i;
+
 		v->fam = (uint8_t)family(v, k->shape);
+		/* another voice: the union still holds the last one's filters, which the 808's and 606's would ring
+		 * from (measured +14 to +42 dB on the first hit, clipped). It starts from zero, as after t9_init. */
+		if (v->fam != fam || v->sub != sub)
+			for (i = 0; i < sizeof v->a; i++)
+				p[i] = 0;
+	}
 	switch (v->kind * 4 + v->fam) {
 	case T9_BD * 4 + 1: bd8_update(v, k, trig); break;
 	case T9_SD * 4 + 1: sd8_update(v, k, trig); break;

@@ -2,16 +2,16 @@
 #ifndef T9_CAL606_H
 #define T9_CAL606_H
 
-#define BD6_B_INC 5606519u  /* body 62.7 Hz */
-#define BD6_B_K 36116531
-#define BD6_C_INC 13078361u  /* click 146.2 Hz */
-#define BD6_C_K 68154765
-#define BD6_EG 6361718
-#define BD6_WB 174185424
-#define BD6_WC 52046277
-#define BD6_WF 19895479
-#define BD6_LP 1075382021
-#define BD6_OUT 53640213
+#define BD6_B_INC 5502694u  /* body 61.5 Hz */
+#define BD6_B_K 33732848
+#define BD6_C_INC 11461986u  /* click 128.1 Hz */
+#define BD6_C_K 45784064
+#define BD6_EG 2440322
+#define BD6_WB 102361958
+#define BD6_WC 13673772
+#define BD6_WF 516763
+#define BD6_LP 1393889100
+#define BD6_OUT 274423832
 
 #define SD6_F16 3330u  /* 208.1 Hz */
 #define SD6_N22 1077900197u
