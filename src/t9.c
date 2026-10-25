@@ -23,7 +23,6 @@ typedef uint32_t u32;
 
 #define SR 48000
 #define ONE31 0x7fffffff
-#define ACCENT_GAIN 6880                                   /* +4.5 dB, Q12 */
 
 /* ---- multiply: a x / 2^31, truncated. The EMAC must be in fractional mode (t9_render sets it). ---------- */
 #if defined(__mcoldfire__)
@@ -165,6 +164,7 @@ static inline s32 clip15(s32 x)
 	return x > 32767 ? 32767 : x < -32768 ? -32768 : x;
 }
 
+#include "t9_trim.h"
 #include "t9_analog.inc"
 #include "t9_808.inc"
 #include "t9_606.inc"
@@ -336,8 +336,10 @@ void t9_update(struct t9_voice *v, const struct t9_knobs *k, int trig)
 	struct emac_save e;
 
 	emac_enter(&e);
-	if (trig || !v->acc)                                  /* the analog voices take the accent themselves */
-		v->acc = k->accent && (v->kind == T9_HH || v->kind == T9_CY) ? ACCENT_GAIN : 4096;
+	if (trig || !v->acc) {                                /* the voice's output level, accented or not (t9_trim.h) */
+		int sh = k->shape < t9_tshapes[v->kind] ? k->shape : t9_tshapes[v->kind] - 1;
+		v->acc = t9_trim[t9_tbase[v->kind] + sh][k->accent ? 1 : 0];
+	}
 	if (trig)
 		v->start = 1;
 	/* the coefficients only change with the knobs or the note: without a trig and with the same knobs (most
@@ -455,8 +457,12 @@ void t9_render(struct t9_voice *v, s32 *out)
 	case T9_SD * 4: sd_render(v, out); break;
 	case T9_TOM * 4: tom_render(v, out); break;
 	case T9_RC * 4: if (v->sub) clap_render(v, out); else rim_render(v, out); break;
-	default: smp_render(v, out); break;
+	default: smp_render(v, out); goto done;             /* the samples take v->acc themselves */
 	}
+	if (v->acc != 4096)
+		for (i = 0; i < T9_BLOCK; i++)
+			out[i] = out[i] * v->acc >> 12;
+done:
 	emac_leave(&e);
 	declick(v, out);
 }
