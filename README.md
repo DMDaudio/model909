@@ -1,24 +1,36 @@
 # model909
 
-TR-909 drum kit for the Elektron Model:Cycles (OS 1.13), and for a Model:Samples running the Cycles OS.
-It replaces the six stock machines.
+> **Experimental.** This branch adds the TR-808 and TR-606 voices and moves some knobs. It is checked in emulation
+> and on one Model:Samples, but less played than the first release. The 909-only version stays available as the
+> stable option: the [`909-only`](https://github.com/DMDaudio/model909/tree/909-only) branch and the
+> [v1.0 release](https://github.com/DMDaudio/model909/releases/tag/v1.0).
+>
+> The web flasher and the Modded-Cycles fork this version builds with are not public yet. Until they are, build
+> the 909-only version from source (its README has the steps).
 
-| Slot | Machine | SHAPE |
+TR-909 drum kit for the Elektron Model:Cycles (OS 1.13), and for a Model:Samples running the Cycles OS, with the
+808's and 606's voices on SHAPE. It replaces the six stock machines.
+
+| Slot | Machine | SHAPE (909 / 808 / 606) |
 |---|---|---|
-| KICK | BD | diode drive |
-| SNARE | SD | noise brightness |
-| METAL | Hats (your samples) | 0 closed, 1 open |
-| PERC | RS/CP | 0 rim, 1 clap |
-| TONE | Toms | 0 low, 1 mid, 2 high |
-| CHORD | Cymbal (your samples) | 0 crash, 1 ride |
+| KICK | BD | 0 909, 1 808, 2 606 |
+| SNARE | SD | 0 909, 1 808, 2 606 |
+| METAL | Hats | 0 / 1 909 closed / open (your samples), 2 / 3 808, 4 / 5 606 |
+| PERC | RS/CP | 0 / 1 909 rim / clap; 808: 2 rim, 3 clap, 4 claves, 5 maracas, 6 cowbell |
+| TONE | Toms | 0..2 909 low / mid / high; 808: 3..5 low / mid / high tom, 6..8 low / mid / high conga; 606: 9 / 10 low / high |
+| CHORD | Cymbal | 0 / 1 909 crash / ride (your samples), 2 808, 3 606 |
+
+On the 909 kick and snare, FINE now does what SHAPE did in v1.0 (the kick's diode drive, the snare's noise
+brightness).
 
 BD, SD, toms, rim and clap are integer models of the 909's circuits (triangle VCOs, diode shapers, transistor VCAs,
-bridged-T resonators, the clap's burst VCA), with constants fitted to recordings of a real 909. The knobs follow the
-909's pots. PUNCH is the accent. Settings: [SOUNDS.md](SOUNDS.md).
+bridged-T resonators, the clap's burst VCA), with constants fitted to recordings of a real 909; the 808 and 606
+voices, hats and cymbals included, are modelled the same way. The knobs follow the 909's pots. PUNCH is the accent.
+Settings: [SOUNDS.md](SOUNDS.md).
 
 The 909's hats and cymbals are ROM samples. Here you supply four WAVs when you build; none are included.
 
-Experimental. Proven in emulation and used on a Model:Samples. Flash at your own risk.
+Unofficial firmware: flash at your own risk.
 
 ## Install
 

@@ -6,10 +6,10 @@ fitted to.
 
 ## BD (KICK)
 
-COLOR Attack, SHAPE Drive, SWEEP Sweep depth, CONTOUR Tune (sweep time), DECAY. CONTOUR, COLOR and DECAY follow a
+SHAPE 0 (the 909; 1 808, 2 606). COLOR Attack, FINE Drive, SWEEP Sweep depth, CONTOUR Tune (sweep time), DECAY. CONTOUR, COLOR and DECAY follow a
 real 909's TUNE, ATTACK and DECAY pots (measured at 5 positions each): 0..127 = the pot's 0..100 %.
 
-| Sound | COLOR | SHAPE | SWEEP | CONTOUR | DECAY |
+| Sound | COLOR | FINE | SWEEP | CONTOUR | DECAY |
 |---|---|---|---|---|---|
 | Default (pots at half) | 64 | 64 | 64 | 64 | 64 |
 | Mars Clean Long A | 44 | 64 | 64 | 0 | 127 |
@@ -25,14 +25,14 @@ real 909's TUNE, ATTACK and DECAY pots (measured at 5 positions each): 0..127 = 
   in the top quarter, as on the real pot.
 - COLOR: the 909's ATTACK over 16..127 (about 6 dB of click); below 16 the click fades out.
 - DECAY: the 909's DECAY. Short hold, then a tail that cuts off (-20 dB at about 80 ms to 210 ms, unaccented).
-- SHAPE: 64 is the 909, lower is rounder, higher drives toward a square.
+- FINE: 64 is the 909, lower is rounder, higher drives toward a square.
 - SWEEP: depth of the pitch drop (64: about 270 Hz above the 49.5 Hz base). PITCH moves the whole kick.
 
 ## SD (SNARE)
 
-COLOR Snappy, SHAPE Tone, SWEEP Pitch drop, CONTOUR Body, DECAY snappy length.
+SHAPE 0 (the 909; 1 808, 2 606). COLOR Snappy, FINE Tone, SWEEP Pitch drop, CONTOUR Body, DECAY snappy length.
 
-| Sound | COLOR | SHAPE | SWEEP | CONTOUR | DECAY |
+| Sound | COLOR | FINE | SWEEP | CONTOUR | DECAY |
 |---|---|---|---|---|---|
 | Default | 64 | 64 | 64 | 64 | 64 |
 | Mars Clean E_01 | 34 | 64 | 64 | 64 | 28 |
@@ -43,7 +43,7 @@ COLOR Snappy, SHAPE Tone, SWEEP Pitch drop, CONTOUR Body, DECAY snappy length.
 
 - COLOR: the 909's SNAPPY. DECAY: the 909's TONE (snappy cut-off, about 100 to 300 ms).
 - PITCH: the 909's TUNE (64: 198 and 315 Hz).
-- SHAPE: noise brightness. SWEEP: pitch bend at the start. CONTOUR: drum decay.
+- FINE: noise brightness. SWEEP: pitch bend at the start. CONTOUR: drum decay.
 
 ## Hats (METAL)
 
