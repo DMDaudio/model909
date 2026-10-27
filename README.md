@@ -1,5 +1,8 @@
 # model909
 
+**This is the 909-only version (v1.0), the first release and the one kept as the stable option.** The 808 and 606
+voices are on [`main`](https://github.com/DMDaudio/model909/tree/main), which is experimental.
+
 TR-909 drum kit for the Elektron Model:Cycles (OS 1.13), and for a Model:Samples running the Cycles OS.
 It replaces the six stock machines.
 
@@ -18,7 +21,7 @@ bridged-T resonators, the clap's burst VCA), with constants fitted to recordings
 
 The 909's hats and cymbals are ROM samples. Here you supply four WAVs at build time; none are included.
 
-Experimental. Proven in emulation and used on a Model:Samples. Flash at your own risk.
+Proven in emulation and used on a Model:Samples. Unofficial firmware: flash at your own risk.
 
 ## Requirements
 
