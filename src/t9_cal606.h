@@ -42,12 +42,12 @@ static const uint32_t bank6_inc[6] = { 17797846u, 39180587u, 56846628u, 21836884
 
 #define HH6_TUNE 1073741824  /* the six oscillators are fitted one by one (bank6_inc) */
 #define HH6_THR 31062927
-#define HH6_THRC 9402623
+#define HH6_THRC 0
 #define HH6_ASYM 856758037
 #define HH6_INVDRIVE 40430502
 #define HH6_DRIVE8 13598
 #define HH6_OH16 763582u
-#define HH6_CH16 36313u
+#define HH6_CH16 13056u
 static const s32 hh6_bp[5] = { 305523919, 0, -305523919, -931191260, 462693987 };
 static const s32 hh6_hp[5] = { 484695066, -969390132, 484695066, -738053698, 126984741 };
 #define HH6_HP1 263483855
